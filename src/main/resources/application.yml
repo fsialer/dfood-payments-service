@@ -1,0 +1,19 @@
+server:
+  port: 8086
+spring:
+  application:
+    name: dfood-payments-service
+  jackson:
+    default-property-inclusion: NON_NULL
+  datasource:
+    url: ${DB_HOST:jdbc:postgresql://localhost:5432/payments_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:admin}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
