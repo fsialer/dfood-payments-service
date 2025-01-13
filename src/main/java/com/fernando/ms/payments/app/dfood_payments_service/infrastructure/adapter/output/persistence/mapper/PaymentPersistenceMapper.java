@@ -9,4 +9,5 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface PaymentPersistenceMapper {
     List<Payment> toPayments(List<PaymentEntity> payments);
+    Payment toPayment(PaymentEntity payment);
 }

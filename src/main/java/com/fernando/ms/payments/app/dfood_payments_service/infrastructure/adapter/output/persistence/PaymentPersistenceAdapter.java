@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -17,5 +18,10 @@ public class PaymentPersistenceAdapter implements PaymentPersistencePort {
     @Override
     public List<Payment> findAll() {
         return paymentPersistenceMapper.toPayments(paymentJpaRepository.findAll());
+    }
+
+    @Override
+    public Optional<Payment> findById(Long id) {
+        return paymentJpaRepository.findById(id).map(paymentPersistenceMapper::toPayment);
     }
 }

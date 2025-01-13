@@ -6,6 +6,7 @@ import com.fernando.ms.payments.app.dfood_payments_service.infrastructure.adapte
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +22,10 @@ public class PaymentRestAdapter {
     @GetMapping
     public ResponseEntity<List<PaymentResponse>> findAll(){
         return ResponseEntity.ok().body(paymentRestMapper.toPaymentsResponse(paymentInputPort.findAll()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PaymentResponse> findById(@PathVariable Long id){
+        return ResponseEntity.ok().body(paymentRestMapper.toPaymentResponse(paymentInputPort.findById(id)));
     }
 }

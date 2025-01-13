@@ -2,6 +2,7 @@ package com.fernando.ms.payments.app.dfood_payments_service.application.services
 
 import com.fernando.ms.payments.app.dfood_payments_service.application.ports.input.PaymentInputPort;
 import com.fernando.ms.payments.app.dfood_payments_service.application.ports.output.PaymentPersistencePort;
+import com.fernando.ms.payments.app.dfood_payments_service.domain.exception.PaymentNotFoundException;
 import com.fernando.ms.payments.app.dfood_payments_service.domain.models.Payment;
 import com.fernando.ms.payments.app.dfood_payments_service.utils.TestUtilsPayment;
 import org.junit.jupiter.api.DisplayName;
@@ -15,9 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotEmpty;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +57,24 @@ public class PaymentServiceTest {
 
         assertEquals(0,payments.size());
         Mockito.verify(paymentPersistencePort,times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("When Payment Information By Identifier Is Correct Expect Payment Information Correct")
+    void When_PaymentInformationByIdentifierIsCorrect_Expect_PaymentInformationCorrect(){
+
+        when(paymentPersistencePort.findById(anyLong())).thenReturn(Optional.of(TestUtilsPayment.buildPaymentMock()));
+        Payment paymentResponse=paymentService.findById(1L);
+        assertNotNull(paymentResponse);
+        Mockito.verify(paymentPersistencePort,times(1)).findById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Expect PaymentNotFoundException When Payment Information By Identifier Is Incorrect")
+    void Expect_PaymentNotFoundException_When_PaymentInformationByIdentifierIsIncorrect(){
+        when(paymentPersistencePort.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(PaymentNotFoundException.class,()->paymentService.findById(1L));
+        Mockito.verify(paymentPersistencePort,times(1)).findById(anyLong());
     }
 
 }

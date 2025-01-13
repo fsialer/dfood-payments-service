@@ -2,6 +2,7 @@ package com.fernando.ms.payments.app.dfood_payments_service.application.services
 
 import com.fernando.ms.payments.app.dfood_payments_service.application.ports.input.PaymentInputPort;
 import com.fernando.ms.payments.app.dfood_payments_service.application.ports.output.PaymentPersistencePort;
+import com.fernando.ms.payments.app.dfood_payments_service.domain.exception.PaymentNotFoundException;
 import com.fernando.ms.payments.app.dfood_payments_service.domain.models.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,5 +16,10 @@ public class PaymentService implements PaymentInputPort {
     @Override
     public List<Payment> findAll() {
         return paymentPersistencePort.findAll();
+    }
+
+    @Override
+    public Payment findById(Long id) {
+        return paymentPersistencePort.findById(id).orElseThrow(PaymentNotFoundException::new);
     }
 }

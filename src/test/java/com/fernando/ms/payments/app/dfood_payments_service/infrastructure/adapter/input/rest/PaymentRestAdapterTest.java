@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -62,5 +62,24 @@ public class PaymentRestAdapterTest {
 
         Mockito.verify(paymentInputPort,times(1)).findAll();
         Mockito.verify(paymentRestMapper,times(1)).toPaymentsResponse(anyList());
+    }
+
+    @Test
+    @DisplayName("When Payment Identifier Is Valid Expect Payment Information Successfully")
+    void When_PaymentIdentifierIsValid_Expect_PaymentInformationSuccessfully() throws Exception {
+
+        when(paymentInputPort.findById(anyLong()))
+                .thenReturn(TestUtilsPayment.buildPaymentMock());
+
+        when(paymentRestMapper.toPaymentResponse(any(Payment.class)))
+                .thenReturn(TestUtilsPayment.buildPaymentResponseMock());
+
+        mockMvc.perform(get("/payments/{id}",1L).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andDo(print());
+
+        Mockito.verify(paymentInputPort,times(1)).findById(anyLong());
+        Mockito.verify(paymentRestMapper,times(1)).toPaymentResponse(any(Payment.class));
     }
 }

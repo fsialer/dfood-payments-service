@@ -9,4 +9,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface PaymentRestMapper {
     List<PaymentResponse> toPaymentsResponse(List<Payment> payments);
+
+    PaymentResponse toPaymentResponse(Payment payment);
 }
