@@ -7,4 +7,5 @@ import java.util.List;
 public interface PaymentInputPort {
     List<Payment> findAll();
     Payment findById(Long id);
+    Payment save(Payment payment);
 }

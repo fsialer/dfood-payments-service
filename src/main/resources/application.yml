@@ -17,3 +17,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+customers-service:
+  url: ${CUSTOMERS_URL:http://localhost:8082/customers}
+orders-service:
+  url: ${ORDERS_URL:http://localhost:8083/orders}

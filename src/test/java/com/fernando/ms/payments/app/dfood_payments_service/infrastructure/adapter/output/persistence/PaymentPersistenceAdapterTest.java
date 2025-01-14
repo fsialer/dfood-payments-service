@@ -17,8 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -57,5 +56,24 @@ public class PaymentPersistenceAdapterTest {
         assertTrue(orderResponse.isPresent());
         Mockito.verify(paymentJpaRepository,times(1)).findById(anyLong());
         Mockito.verify(paymentPersistenceMapper,times(1)).toPayment(any(PaymentEntity.class));
+    }
+
+    @Test
+    @DisplayName("When Saving Payment Expect Payment Saved Correctly")
+    void When_SavingPayment_Expect_PaymentSavedCorrectly() {
+        Payment payment = TestUtilsPayment.buildPaymentMock();
+        PaymentEntity paymentEntity = TestUtilsPayment.buildPaymentEntityMock();
+
+        when(paymentPersistenceMapper.toPaymentEntity(any(Payment.class))).thenReturn(paymentEntity);
+        when(paymentJpaRepository.save(any(PaymentEntity.class))).thenReturn(paymentEntity);
+        when(paymentPersistenceMapper.toPayment(any(PaymentEntity.class))).thenReturn(payment);
+
+        Payment savedPayment = paymentPersistenceAdapter.save(payment);
+
+        assertNotNull(savedPayment);
+        assertEquals(payment.getId(), savedPayment.getId());
+        Mockito.verify(paymentPersistenceMapper, times(1)).toPaymentEntity(any(Payment.class));
+        Mockito.verify(paymentJpaRepository, times(1)).save(any(PaymentEntity.class));
+        Mockito.verify(paymentPersistenceMapper, times(1)).toPayment(any(PaymentEntity.class));
     }
 }

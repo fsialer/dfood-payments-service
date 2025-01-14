@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface PaymentPersistencePort {
     List<Payment> findAll();
     Optional<Payment> findById(Long id);
+    Payment save(Payment payment);
 }

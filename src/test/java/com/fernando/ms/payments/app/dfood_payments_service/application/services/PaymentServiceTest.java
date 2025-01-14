@@ -1,10 +1,14 @@
 package com.fernando.ms.payments.app.dfood_payments_service.application.services;
 
 import com.fernando.ms.payments.app.dfood_payments_service.application.ports.input.PaymentInputPort;
+import com.fernando.ms.payments.app.dfood_payments_service.application.ports.output.ExternalCustomerOutputPort;
+import com.fernando.ms.payments.app.dfood_payments_service.application.ports.output.ExternalOrderOutputPort;
 import com.fernando.ms.payments.app.dfood_payments_service.application.ports.output.PaymentPersistencePort;
+import com.fernando.ms.payments.app.dfood_payments_service.application.services.strategy.IStatusPaymentStrategy;
 import com.fernando.ms.payments.app.dfood_payments_service.domain.exception.PaymentNotFoundException;
 import com.fernando.ms.payments.app.dfood_payments_service.domain.models.Payment;
 import com.fernando.ms.payments.app.dfood_payments_service.utils.TestUtilsPayment;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +25,7 @@ import java.util.Optional;
 import static org.hibernate.validator.internal.util.Contracts.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PaymentServiceTest {
@@ -34,6 +37,23 @@ public class PaymentServiceTest {
 
     @InjectMocks
     private PaymentService paymentService;
+
+    @Mock
+    private ExternalOrderOutputPort externalOrderOutputPort;
+
+    @Mock
+    private ExternalCustomerOutputPort externalCustomerOutputPort;
+
+    @Mock
+    private List<IStatusPaymentStrategy> statusPaymentStrategyList;
+
+    @Mock
+    private IStatusPaymentStrategy statusPaymentStrategy;
+
+    @BeforeEach
+    public void setUp(){
+        statusPaymentStrategy = mock(IStatusPaymentStrategy.class);
+    }
 
     @Test
     @DisplayName("When Payment Information Exists Expect A List Payments")
@@ -77,4 +97,26 @@ public class PaymentServiceTest {
         Mockito.verify(paymentPersistencePort,times(1)).findById(anyLong());
     }
 
+
+    @Test
+    @DisplayName("When Saving Payment Expect Payment Saved Correctly")
+    void When_SavingPayment_Expect_PaymentSavedCorrectly() {
+        Payment payment = TestUtilsPayment.buildPaymentMock();
+        //IStatusPaymentStrategy statusPaymentStrategy = mock(IStatusPaymentStrategy.class);
+
+        when(externalOrderOutputPort.findBydId(anyLong())).thenReturn(payment.getOrder());
+        doNothing().when(externalCustomerOutputPort).verifyExistsById(anyLong());
+        when(statusPaymentStrategyList.stream()).thenReturn(List.of(statusPaymentStrategy).stream());
+        when(statusPaymentStrategy.isApplicable(anyString())).thenReturn(true);
+        when(statusPaymentStrategy.doOperation(any(Payment.class))).thenReturn("PROCESSING");
+        when(paymentPersistencePort.save(any(Payment.class))).thenReturn(payment);
+
+        Payment savedPayment = paymentService.save(payment);
+
+        assertNotNull(savedPayment);
+        assertEquals("PROCESSING", savedPayment.getStatusPayment());
+        verify(externalOrderOutputPort, times(1)).findBydId(anyLong());
+        verify(externalCustomerOutputPort, times(1)).verifyExistsById(anyLong());
+        verify(paymentPersistencePort, times(1)).save(any(Payment.class));
+    }
 }

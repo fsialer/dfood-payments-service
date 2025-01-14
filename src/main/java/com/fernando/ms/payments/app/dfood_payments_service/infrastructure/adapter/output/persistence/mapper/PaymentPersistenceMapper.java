@@ -10,4 +10,5 @@ import java.util.List;
 public interface PaymentPersistenceMapper {
     List<Payment> toPayments(List<PaymentEntity> payments);
     Payment toPayment(PaymentEntity payment);
+    PaymentEntity toPaymentEntity(Payment payment);
 }

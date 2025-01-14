@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fernando.ms.payments.app.dfood_payments_service.application.ports.input.PaymentInputPort;
 import com.fernando.ms.payments.app.dfood_payments_service.domain.models.Payment;
 import com.fernando.ms.payments.app.dfood_payments_service.infrastructure.adapter.input.rest.mapper.PaymentRestMapper;
+import com.fernando.ms.payments.app.dfood_payments_service.infrastructure.adapter.input.rest.models.request.CreatePaymentRequest;
 import com.fernando.ms.payments.app.dfood_payments_service.infrastructure.adapter.input.rest.models.response.PaymentResponse;
 import com.fernando.ms.payments.app.dfood_payments_service.utils.TestUtilsPayment;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +23,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,5 +83,29 @@ public class PaymentRestAdapterTest {
 
         Mockito.verify(paymentInputPort,times(1)).findById(anyLong());
         Mockito.verify(paymentRestMapper,times(1)).toPaymentResponse(any(Payment.class));
+    }
+
+    @Test
+    @DisplayName("When Saving Payment Expect Payment Saved Correctly")
+    void When_SavingPayment_Expect_PaymentSavedCorrectly() throws Exception {
+        CreatePaymentRequest createPaymentRequest = TestUtilsPayment.buildCreatePaymentRequestMock();
+        Payment payment = TestUtilsPayment.buildPaymentMock();
+        PaymentResponse paymentResponse = TestUtilsPayment.buildPaymentResponseMock();
+
+        when(paymentRestMapper.toPayment(any(CreatePaymentRequest.class))).thenReturn(payment);
+        when(paymentInputPort.save(any(Payment.class))).thenReturn(payment);
+        when(paymentRestMapper.toPaymentResponse(any(Payment.class))).thenReturn(paymentResponse);
+
+        mockMvc.perform(post("/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createPaymentRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(paymentResponse.getId()))
+                .andExpect(jsonPath("$.statusPayment").value(paymentResponse.getStatusPayment()))
+                .andDo(print());
+
+        Mockito.verify(paymentRestMapper, times(1)).toPayment(any(CreatePaymentRequest.class));
+        Mockito.verify(paymentInputPort, times(1)).save(any(Payment.class));
+        Mockito.verify(paymentRestMapper, times(1)).toPaymentResponse(any(Payment.class));
     }
 }
